@@ -2,6 +2,8 @@ add_subdirectory(Core)
 add_subdirectory(GUI)
 add_sources(
         Buffer.cpp
+        Oversampler.cpp
+        Distroyer.cpp
         PluginEditor.cpp
         PluginProcessor.cpp
         UI.cpp

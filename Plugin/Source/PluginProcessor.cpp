@@ -18,60 +18,29 @@ VSTProcessor::VSTProcessor()
   m_ProcessorParameters.Input = instance->handler->GetParameter("input");
   m_ProcessorParameters.Output = instance->handler->GetParameter("output");
   m_ProcessorParameters.DistMix = instance->handler->GetParameter("dist_mix");
-  m_ProcessorParameters.DryWet = instance->handler->GetParameter("dry_wet");
   m_ProcessorParameters.Bypass = instance->handler->GetParameter("bypass");
-}
-
-float lerp(float a, float b, float f) { return a + f * (b - a); }
-
-float mixed(float input, float mix) {
-  float hardClip = std::clamp(input, -1.0f, 1.0f);
-  float softClip = std::clamp(std::atan(input) * 0.637, -1.0,
-                              1.0); // -> Range to max 1.00059
-  return lerp(softClip, hardClip, mix);
 }
 
 void VSTProcessor::processBlock(juce::AudioBuffer<float> &buffer,
                                 juce::MidiBuffer &) {
   for (int i = getTotalNumInputChannels(); i < getTotalNumOutputChannels(); ++i)
     buffer.clear(i, 0, buffer.getNumSamples());
-  instance->isClipping = false;
+
   if (m_ProcessorParameters.Bypass->getBool()) {
+    instance->m_ClippingValue = {};
     instance->buffer->SetSamples(buffer);
     return;
   }
 
-  float inputGain = juce::Decibels::decibelsToGain(
+  m_Distroyer.InputGain = juce::Decibels::decibelsToGain(
       (float)m_ProcessorParameters.Input->getValue(), -50.0f);
-  float outputGain = juce::Decibels::decibelsToGain(
+  m_Distroyer.OutputGain = juce::Decibels::decibelsToGain(
       (float)m_ProcessorParameters.Output->getValue(), -50.0f);
+  m_Distroyer.AutoGain = juce::Decibels::decibelsToGain(
+      (float)m_ProcessorParameters.Input->getValue() * -1.0f, -50.0f);
+  m_Distroyer.MixValue = m_ProcessorParameters.DistMix->getValue();
 
-  float autoGain = juce::Decibels::decibelsToGain(
-      (float)m_ProcessorParameters.Input->getValue() * 0.5f * -1.0f, -50.0f);
-
-  juce::AudioBuffer<float> processBuffer;
-  processBuffer.makeCopyOf(buffer);
-
-  int numSamples = buffer.getNumSamples();
-  float mixValue = m_ProcessorParameters.DistMix->getValue();
-  for (int channel = 0; channel < 2; ++channel) {
-    float *channelData = processBuffer.getWritePointer(channel);
-    for (int i = 0; i < numSamples; i++) {
-      auto val = mixed(channelData[i] * inputGain, mixValue);
-      if (val >= 0.95)
-        instance->isClipping = true;
-      channelData[i] = val * autoGain;
-    }
-  }
-  float mix = m_ProcessorParameters.DryWet->getValue();
-  for (int channel = 0; channel < 2; ++channel) {
-    float *channelData = buffer.getWritePointer(channel);
-    const float *processedData = processBuffer.getReadPointer(channel);
-
-    for (int i = 0; i < numSamples; i++) {
-      channelData[i] = lerp(channelData[i], processedData[i], mix) * outputGain;
-    }
-  }
+  instance->m_ClippingValue = m_Distroyer.Process(buffer);
   instance->buffer->SetSamples(buffer);
 }
 
@@ -106,6 +75,7 @@ void VSTProcessor::prepareToPlay(double sampleRate, int blockSize) {
   if (config.sampleRate != sampleRate)
     config.sampleRate = sampleRate;
   instance->buffer->Reset(blockSize);
+  m_Distroyer.Setup(sampleRate);
 }
 
 juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter() {

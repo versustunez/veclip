@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Distroyer.h"
 #include "JuceHeader.h"
 
 #include <Core/Instance.h>
@@ -62,4 +63,5 @@ private:
   std::string m_id;
   ProcessorParameters m_ProcessorParameters;
   juce::AudioProcessorValueTreeState treeState;
+  VSTZ::Distroyer m_Distroyer{};
 };

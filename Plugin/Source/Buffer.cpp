@@ -32,11 +32,11 @@ void Buffer::SetSamples(const juce::AudioBuffer<float> &buffer) {
   for (int i = 0; i < buffer.getNumSamples(); ++i) {
     m_Left[(size_t)i] = buffer.getSample(0, (int)i);
     m_Right[(size_t)i] = buffer.getSample(1, (int)i);
-    peaks.left = std::max(peaks.left, std::abs(m_Left[(size_t)i]));
-    peaks.right = std::max(peaks.right, std::abs(m_Right[(size_t)i]));
+    peaks.Left = std::max(peaks.Left, std::abs(m_Left[(size_t)i]));
+    peaks.Right = std::max(peaks.Right, std::abs(m_Right[(size_t)i]));
   }
-  m_Peaks.left = juce::Decibels::gainToDecibels(peaks.left, -70.0);
-  m_Peaks.right = juce::Decibels::gainToDecibels(peaks.right, -70.0);
+  m_Peaks.Left = juce::Decibels::gainToDecibels(peaks.Left, -70.0);
+  m_Peaks.Right = juce::Decibels::gainToDecibels(peaks.Right, -70.0);
 
 }
 }; // namespace VSTZ

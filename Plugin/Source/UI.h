@@ -39,7 +39,6 @@ protected:
   Scope<GUI::Knob> m_Input;
   Scope<GUI::Knob> m_Output;
   Scope<GUI::Knob> m_DistMix;
-  Scope<GUI::Knob> m_DryWet;
   Scope<GUI::Switch> m_Bypass;
   Scope<ClipLED> m_ClipLED;
   Scope<BufferDrawer> m_VU;

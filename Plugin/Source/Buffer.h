@@ -2,11 +2,9 @@
 
 #include <JuceHeader.h>
 #include <TypeDefs.h>
+#include <Structs.h>
 
 namespace VSTZ {
-struct Channel {
-  double left, right;
-};
 class Buffer {
 public:
   explicit Buffer(InstanceID id);

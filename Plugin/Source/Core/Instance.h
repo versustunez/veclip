@@ -25,7 +25,7 @@ public:
   State::InstanceState state{id};
   Ref<Buffer> buffer{};
   juce::AudioProcessorEditor *editor{};
-  bool isClipping{false};
+  Channel m_ClippingValue{0,0};
 
 protected:
   explicit Instance(InstanceID _id) : id(_id) {}
