@@ -14,6 +14,7 @@ public:
   float AutoGain{0.0};
   float OutputGain{0.0};
   double MixValue{0.5};
+  bool OutputDelta{false};
 protected:
   Channel ProcessSample(const Channel& channel) const;
 

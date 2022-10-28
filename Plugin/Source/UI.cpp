@@ -18,6 +18,9 @@ void UI::Init() {
   m_Bypass.Create("bypass", "Bypass", m_ID);
   m_Bypass->setButtonText("Bypass");
 
+  m_Delta.Create("delta", "Delta", m_ID);
+  m_Delta->setButtonText("Delta");
+
   m_ClipLED.Create(m_ID);
   m_VU.Create(m_ID, true);
 
@@ -25,11 +28,13 @@ void UI::Init() {
   addAndMakeVisible(*m_Output);
   addAndMakeVisible(*m_DistMix);
   addAndMakeVisible(*m_Bypass);
+  addAndMakeVisible(*m_Delta);
   addAndMakeVisible(*m_ClipLED);
   addAndMakeVisible(*m_VU);
 }
 void UI::resized() {
   m_Bypass->setBounds(10, 10, 50, 20);
+  m_Delta->setBounds(10, 30, 50, 20);
   m_ClipLED->setBounds(260, 10, 50, 20);
   m_VU->setBounds(70, 10, 180, 20);
   m_Input->setBounds(10, 90, 50, 130);

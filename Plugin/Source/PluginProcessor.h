@@ -10,7 +10,7 @@ struct ProcessorParameters {
   VSTZ::Core::Parameter *Input;
   VSTZ::Core::Parameter *Output;
   VSTZ::Core::Parameter *DistMix;
-  VSTZ::Core::Parameter *DryWet;
+  VSTZ::Core::Parameter *Delta;
   VSTZ::Core::Parameter *Bypass;
 };
 class VSTProcessor : public juce::AudioProcessor {

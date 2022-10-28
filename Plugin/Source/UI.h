@@ -40,6 +40,7 @@ protected:
   Scope<GUI::Knob> m_Output;
   Scope<GUI::Knob> m_DistMix;
   Scope<GUI::Switch> m_Bypass;
+  Scope<GUI::Switch> m_Delta;
   Scope<ClipLED> m_ClipLED;
   Scope<BufferDrawer> m_VU;
   Core::Instance* m_Instance;

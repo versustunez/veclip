@@ -19,6 +19,7 @@ VSTProcessor::VSTProcessor()
   m_ProcessorParameters.Output = instance->handler->GetParameter("output");
   m_ProcessorParameters.DistMix = instance->handler->GetParameter("dist_mix");
   m_ProcessorParameters.Bypass = instance->handler->GetParameter("bypass");
+  m_ProcessorParameters.Delta = instance->handler->GetParameter("delta");
 }
 
 void VSTProcessor::processBlock(juce::AudioBuffer<float> &buffer,
@@ -39,6 +40,7 @@ void VSTProcessor::processBlock(juce::AudioBuffer<float> &buffer,
   m_Distroyer.AutoGain = juce::Decibels::decibelsToGain(
       (float)m_ProcessorParameters.Input->getValue() * -1.0f, -50.0f);
   m_Distroyer.MixValue = m_ProcessorParameters.DistMix->getValue();
+  m_Distroyer.OutputDelta = m_ProcessorParameters.Delta->getBool();
 
   instance->m_ClippingValue = m_Distroyer.Process(buffer);
   instance->buffer->SetSamples(buffer);

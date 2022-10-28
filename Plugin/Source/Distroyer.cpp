@@ -53,14 +53,21 @@ Channel Distroyer::Process(juce::AudioBuffer<float> &buffer) {
     Channel reduction =
         calculateReduction(originalChannelData, output[0], AutoGain);
     data[0] *= reduction;
-    data[0] *= oversamplingInc;
     m_HighestPeak.Left =
-        std::max(std::abs(output[0].Left - data[0].Left), m_HighestPeak.Left);
-    m_HighestPeak.Right = std::max(std::abs(output[0].Right - data[0].Right),
+        std::max(std::abs(data[0].Left - originalChannelData.Left), m_HighestPeak.Left);
+    m_HighestPeak.Right = std::max(std::abs(data[0].Right - originalChannelData.Right),
                                    m_HighestPeak.Right);
+    data[0] *= oversamplingInc;
 
-    leftChannelData[i] = (float)data[0].Left * OutputGain;
-    rightChannelData[i] = (float)data[0].Right * OutputGain;
+    if (OutputDelta) {
+      leftChannelData[i] = (float)(data[0].Left - originalChannelData.Left);
+      rightChannelData[i] = (float)(data[0].Right - originalChannelData.Right);
+    } else {
+      leftChannelData[i] = (float)data[0].Left * OutputGain;
+      rightChannelData[i] = (float)data[0].Right * OutputGain;
+    }
+
+
   }
   return m_HighestPeak;
 }
