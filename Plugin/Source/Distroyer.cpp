@@ -7,22 +7,22 @@ namespace VSTZ {
 static double lerp(double a, double b, double f) { return a + f * (b - a); }
 
 static double mixed(double input, double mix) {
-  double hardClip =
-      std::clamp(input, -1.0, 1.0);
+  double hardClip = std::clamp(input, -1.0, 1.0);
   double softClip = std::atan(input);
   return lerp(softClip, hardClip, mix);
 }
 
 static Channel calculateReduction(const Channel &original,
-                                  const Channel &processed,
-                                  double autoGainVal) {
+                                  const Channel &processed, double autoGainVal,
+                                  double rawGain) {
+
   Channel autoGain{autoGainVal, autoGainVal};
   Channel processedAutoGain = processed * autoGain;
   Channel newChannel = processedAutoGain - original;
   Channel output{1.0 - newChannel.Left, 1.0 - newChannel.Right};
-  output.Left = std::min(output.Left, 1.0);
-  output.Right = std::min(output.Right, 1.0);
-  return autoGain * output;
+  output.Left = juce::Decibels::decibelsToGain(rawGain * output.Left, -100.0);
+  output.Right = juce::Decibels::decibelsToGain(rawGain * output.Right, -100.0);
+  return output;
 }
 
 void Distroyer::Setup(double sampleRate) {
@@ -50,14 +50,16 @@ Channel Distroyer::Process(juce::AudioBuffer<float> &buffer) {
       channel.Left = m_PostFilter[0].DoFilter(output[channelIdx].Left);
       channel.Right = m_PostFilter[1].DoFilter(output[channelIdx].Right);
     }
-    Channel reduction =
-        calculateReduction(originalChannelData, output[0], AutoGain);
+    Channel reduction = calculateReduction(originalChannelData, output[0],
+                                           AutoGain, AutoGainRaw);
     data[0] *= reduction;
-    m_HighestPeak.Left =
-        std::max(std::abs(data[0].Left - originalChannelData.Left), m_HighestPeak.Left);
-    m_HighestPeak.Right = std::max(std::abs(data[0].Right - originalChannelData.Right),
-                                   m_HighestPeak.Right);
     data[0] *= oversamplingInc;
+    m_HighestPeak.Left = std::max(
+        std::abs(data[0].Left - originalChannelData.Left), m_HighestPeak.Left);
+    m_HighestPeak.Right =
+        std::max(std::abs(data[0].Right - originalChannelData.Right),
+                 m_HighestPeak.Right);
+
 
     if (OutputDelta) {
       leftChannelData[i] = (float)(data[0].Left - originalChannelData.Left);
@@ -66,8 +68,6 @@ Channel Distroyer::Process(juce::AudioBuffer<float> &buffer) {
       leftChannelData[i] = (float)data[0].Left * OutputGain;
       rightChannelData[i] = (float)data[0].Right * OutputGain;
     }
-
-
   }
   return m_HighestPeak;
 }

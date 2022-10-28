@@ -37,10 +37,12 @@ void VSTProcessor::processBlock(juce::AudioBuffer<float> &buffer,
       (float)m_ProcessorParameters.Input->getValue(), -50.0f);
   m_Distroyer.OutputGain = juce::Decibels::decibelsToGain(
       (float)m_ProcessorParameters.Output->getValue(), -50.0f);
+  m_Distroyer.AutoGainRaw = m_ProcessorParameters.Input->getValue() * -1.0f;
   m_Distroyer.AutoGain = juce::Decibels::decibelsToGain(
-      (float)m_ProcessorParameters.Input->getValue() * -1.0f, -50.0f);
+      m_Distroyer.AutoGainRaw, -50.0f);
   m_Distroyer.MixValue = m_ProcessorParameters.DistMix->getValue();
   m_Distroyer.OutputDelta = m_ProcessorParameters.Delta->getBool();
+
 
   instance->m_ClippingValue = m_Distroyer.Process(buffer);
   instance->buffer->SetSamples(buffer);
