@@ -12,7 +12,6 @@ public:
   Channel Process(juce::AudioBuffer<float>& buffer);
   float InputGain{0.0};
   float AutoGain{0.0};
-  float AutoGainRaw{0.0};
   float OutputGain{0.0};
   double MixValue{0.5};
   bool OutputDelta{false};

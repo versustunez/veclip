@@ -12,19 +12,6 @@ static double mixed(double input, double mix) {
   return lerp(softClip, hardClip, mix);
 }
 
-static Channel calculateReduction(const Channel &original,
-                                  const Channel &processed, double autoGainVal,
-                                  double rawGain) {
-
-  Channel autoGain{autoGainVal, autoGainVal};
-  Channel processedAutoGain = processed * autoGain;
-  Channel newChannel = processedAutoGain - original;
-  Channel output{1.0 - newChannel.Left, 1.0 - newChannel.Right};
-  output.Left = juce::Decibels::decibelsToGain(rawGain * output.Left, -100.0);
-  output.Right = juce::Decibels::decibelsToGain(rawGain * output.Right, -100.0);
-  return output;
-}
-
 void Distroyer::Setup(double sampleRate) {
   sampleRate *= 2.0;
   m_PostFilter[0].SetSampleRate(sampleRate);
@@ -50,9 +37,7 @@ Channel Distroyer::Process(juce::AudioBuffer<float> &buffer) {
       channel.Left = m_PostFilter[0].DoFilter(output[channelIdx].Left);
       channel.Right = m_PostFilter[1].DoFilter(output[channelIdx].Right);
     }
-    Channel reduction = calculateReduction(originalChannelData, output[0],
-                                           AutoGain, AutoGainRaw);
-    data[0] *= reduction;
+    data[0] *= Channel{AutoGain, AutoGain};;
     data[0] *= oversamplingInc;
     m_HighestPeak.Left = std::max(
         std::abs(data[0].Left - originalChannelData.Left), m_HighestPeak.Left);
