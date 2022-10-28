@@ -16,12 +16,18 @@ double StepLowPass::DoFilter(double input) {
 }
 
 void StepLowPass::SetSampleRate(double sr) {
-  double Q = 1.35;
-  for (auto &filter : m_Filter) {
-    auto coefficients = juce::IIRCoefficients::makeLowPass(
-        sr, sr * 0.5 * 0.5, Q / juce::MathConstants<double>::sqrt2);
-    filter.setCoefficients(coefficients);
-    Q -= 0.125;
+  juce::IIRCoefficients coefficients[4]{};
+  for (int j = 0; j < 2; ++j) {
+    double Q =
+        1.0 /
+        (2.0 * std::cos((2 * j + 1) * juce::MathConstants<double>::pi / 8.0));
+    auto coefficient =
+        juce::IIRCoefficients::makeLowPass(sr, sr * 0.5 * 0.5, Q);
+    coefficients[j * 2] = coefficient;
+    coefficients[j * 2 + 1] = coefficient;
+  }
+  for (int i = 0; i < 4; i++) {
+    m_Filter[i].setCoefficients(coefficients[i]);
   }
 }
 }; // namespace VSTZ

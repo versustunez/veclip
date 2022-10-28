@@ -8,8 +8,7 @@ static double lerp(double a, double b, double f) { return a + f * (b - a); }
 
 static double mixed(double input, double mix) {
   double hardClip = std::clamp(input, -1.0, 1.0);
-  double softClip = std::clamp(std::atan(input) * 0.637, -1.0,
-                               1.0); // -> Range to max 1.00059
+  double softClip = std::clamp(std::atan(input), -1.0, 1.0);
   return lerp(softClip, hardClip, mix);
 }
 
@@ -36,8 +35,8 @@ void Distroyer::Setup(double sampleRate) {
 Channel Distroyer::Process(juce::AudioBuffer<float> &buffer) {
   float *leftChannelData = buffer.getWritePointer(0);
   float *rightChannelData = buffer.getWritePointer(1);
-  Channel oversamplingInc{2.2, 2.2};
-  Channel m_HighestPeak = {0,0};
+  Channel oversamplingInc{2.1, 2.1};
+  Channel m_HighestPeak = {0, 0};
   for (auto i = 0; i < buffer.getNumSamples(); i++) {
     Channel originalChannelData = {leftChannelData[i], rightChannelData[i]};
     Channel data[2] = {originalChannelData, {0, 0}};
@@ -53,8 +52,10 @@ Channel Distroyer::Process(juce::AudioBuffer<float> &buffer) {
     Channel reduction =
         calculateReduction(originalChannelData, output[0], AutoGain);
     data[0] *= reduction;
-    m_HighestPeak.Left = std::max(std::abs(output[0].Left - data[0].Left), m_HighestPeak.Left);
-    m_HighestPeak.Right = std::max(std::abs(output[0].Right - data[0].Right), m_HighestPeak.Right);
+    m_HighestPeak.Left =
+        std::max(std::abs(output[0].Left - data[0].Left), m_HighestPeak.Left);
+    m_HighestPeak.Right = std::max(std::abs(output[0].Right - data[0].Right),
+                                   m_HighestPeak.Right);
     data[0] *= oversamplingInc;
     leftChannelData[i] = (float)data[0].Left * OutputGain;
     rightChannelData[i] = (float)data[0].Right * OutputGain;
