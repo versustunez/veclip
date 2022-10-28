@@ -7,8 +7,9 @@ namespace VSTZ {
 static double lerp(double a, double b, double f) { return a + f * (b - a); }
 
 static double mixed(double input, double mix) {
-  double hardClip = std::clamp(input, -1.0, 1.0);
-  double softClip = std::clamp(std::atan(input), -1.0, 1.0);
+  double hardClip =
+      std::clamp(input, -1.0, 1.0);
+  double softClip = std::atan(input);
   return lerp(softClip, hardClip, mix);
 }
 
@@ -52,11 +53,12 @@ Channel Distroyer::Process(juce::AudioBuffer<float> &buffer) {
     Channel reduction =
         calculateReduction(originalChannelData, output[0], AutoGain);
     data[0] *= reduction;
+    data[0] *= oversamplingInc;
     m_HighestPeak.Left =
         std::max(std::abs(output[0].Left - data[0].Left), m_HighestPeak.Left);
     m_HighestPeak.Right = std::max(std::abs(output[0].Right - data[0].Right),
                                    m_HighestPeak.Right);
-    data[0] *= oversamplingInc;
+
     leftChannelData[i] = (float)data[0].Left * OutputGain;
     rightChannelData[i] = (float)data[0].Right * OutputGain;
   }

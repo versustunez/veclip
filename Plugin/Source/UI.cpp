@@ -66,9 +66,10 @@ static juce::Colour MixColor(const juce::Colour &l, const juce::Colour &r,
 }
 
 void BufferDrawer::paint(juce::Graphics &g) {
+  constexpr float cornerSize = 4;
   auto theme = Core::Config::get().theme();
   g.setColour(theme->getColor(Theme::Colors::bgTwo));
-  g.drawRect(0, 0, getWidth(), getHeight());
+  g.fillRoundedRectangle(0, 0, getWidth(), getHeight(), cornerSize);
   auto color = theme->getColor(Theme::Colors::clip);
   auto color2 = theme->getColor(Theme::Colors::accent);
   auto buffer = m_Instance->buffer->Peak();
@@ -80,15 +81,14 @@ void BufferDrawer::paint(juce::Graphics &g) {
   int zeroDecibelLineX = normalizeBufferRange(0) * barWidth;
   constexpr int xOffset = 1;
 
-  g.setColour(theme->getColor(Theme::Colors::bgTwo).withAlpha(0.3f));
+  g.setColour(theme->getColor(Theme::Colors::bg).withAlpha(0.5f));
   g.drawLine(zeroDecibelLineX, 0, zeroDecibelLineX, getHeight(), 1);
-
   // LEFT Channel
   g.setColour(MixColor(color2, color, normalizeUIBufferRange(buffer.Left)));
-  g.fillRect(xOffset, 1, leftBarWidth, halfHeight);
+  g.fillRoundedRectangle(xOffset, 1, leftBarWidth, halfHeight, cornerSize);
   // Right Channel
   g.setColour(MixColor(color2, color, normalizeUIBufferRange(buffer.Right)));
-  g.fillRect(xOffset, halfHeight + 3, rightBarWidth, halfHeight);
+  g.fillRoundedRectangle(xOffset, halfHeight + 3, rightBarWidth, halfHeight, cornerSize);
 
   m_Last = buffer;
 }
@@ -101,9 +101,9 @@ void ClipLED::paint(juce::Graphics &g) {
   auto theme = Core::Config::get().theme();
   auto color = theme->getColor(Theme::Colors::clip);
   auto color2 = theme->getColor(Theme::Colors::accent);
-  auto &peak = m_Instance->m_ClippingValue;
+  auto peak = m_Instance->m_ClippingValue;
   double maxValue = std::max(peak.Left, peak.Right);
-  g.fillAll(MixColor(color2, color, maxValue));
-  g.drawRect(0, 0, getWidth(), getHeight(), 1);
+  g.setColour(MixColor(color2, color, maxValue));
+  g.fillRoundedRectangle(0, 0, getWidth(), getHeight(), 5.0);
 }
 } // namespace VSTZ
