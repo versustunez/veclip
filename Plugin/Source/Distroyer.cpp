@@ -12,54 +12,73 @@ static double mixed(double input, double mix) {
   return lerp(softClip, hardClip, mix);
 }
 
-void Distroyer::Setup(double sampleRate) {
+Distroyer::Distroyer() {
+  m_ThreeBandProcessor.SetProcessingFunction(
+      [&](auto &channels, size_t count, size_t band) {
+        for (size_t i = 0; i < count; ++i) {
+          auto &channel = channels[i];
+          channel = {mixed(channel.Left * InputGain, MixValue),
+                     mixed(channel.Right * InputGain, MixValue)};
+        }
+      });
+}
+
+void Distroyer::Setup(double sampleRate, int sampleSize) {
   sampleRate *= 2.0;
   m_PostFilter[0].SetSampleRate(sampleRate);
   m_PostFilter[1].SetSampleRate(sampleRate);
   m_PreFilter[0].SetSampleRate(sampleRate);
   m_PreFilter[1].SetSampleRate(sampleRate);
+  m_ThreeBandProcessor.SetSampleRate(sampleRate);
+  m_ThreeBandProcessor.SetSampleSize((size_t)sampleSize * 2);
 }
 
 Channel Distroyer::Process(juce::AudioBuffer<float> &buffer) {
   float *leftChannelData = buffer.getWritePointer(0);
   float *rightChannelData = buffer.getWritePointer(1);
   Channel oversamplingInc{2.1, 2.1};
-  Channel m_HighestPeak = {0, 0};
+  Channel highestPeak{0, 0};
+  m_ThreeBandProcessor.Reset();
   for (auto i = 0; i < buffer.getNumSamples(); i++) {
-    Channel originalChannelData = {leftChannelData[i], rightChannelData[i]};
-    Channel data[2] = {originalChannelData, {0, 0}};
-    Channel output[2] = {{0.0, 0.0}, {0.0, 0.0}};
-    for (int channelIdx = 0; channelIdx < 2; ++channelIdx) {
-      auto &channel = data[channelIdx];
+    Channel data[2] = {{leftChannelData[i], rightChannelData[i]}, {0, 0}};
+    for (auto &channel : data) {
       channel.Left = m_PreFilter[0].DoFilter(channel.Left);
       channel.Right = m_PreFilter[1].DoFilter(channel.Right);
-      output[channelIdx] = ProcessSample(channel);
-      channel.Left = m_PostFilter[0].DoFilter(output[channelIdx].Left);
-      channel.Right = m_PostFilter[1].DoFilter(output[channelIdx].Right);
-    }
-    data[0] *= Channel{AutoGain, AutoGain};;
-    data[0] *= oversamplingInc;
-    m_HighestPeak.Left = std::max(
-        std::abs(data[0].Left - originalChannelData.Left), m_HighestPeak.Left);
-    m_HighestPeak.Right =
-        std::max(std::abs(data[0].Right - originalChannelData.Right),
-                 m_HighestPeak.Right);
-
-
-    if (OutputDelta) {
-      leftChannelData[i] = (float)(data[0].Left - originalChannelData.Left);
-      rightChannelData[i] = (float)(data[0].Right - originalChannelData.Right);
-    } else {
-      leftChannelData[i] = (float)data[0].Left * OutputGain;
-      rightChannelData[i] = (float)data[0].Right * OutputGain;
+      m_ThreeBandProcessor.AddSample(channel);
     }
   }
-  return m_HighestPeak;
-}
+  m_ThreeBandProcessor.Process();
+  auto size = m_ThreeBandProcessor.GetSize();
+  auto &processedBuffer = m_ThreeBandProcessor.GetBuffer();
+  for (size_t i = 0; i < size; i += 2) {
+    {
+      auto &channel = processedBuffer[i];
+      channel.Left = m_PostFilter[0].DoFilter(channel.Left);
+      channel.Right = m_PostFilter[1].DoFilter(channel.Right);
+      channel *= Channel{AutoGain, AutoGain};
+      channel *= oversamplingInc;
+      Channel originalChannelData = {leftChannelData[i / 2],
+                                     rightChannelData[i / 2]};
+      highestPeak.Left = std::max(
+          std::abs(channel.Left - originalChannelData.Left), highestPeak.Left);
+      highestPeak.Right = std::max(
+          std::abs(channel.Right - originalChannelData.Right), highestPeak.Right);
+      channel *= {OutputGain, OutputGain};
 
-Channel Distroyer::ProcessSample(const Channel &channel) const {
-  return Channel{mixed(channel.Left * InputGain, MixValue),
-                 mixed(channel.Right * InputGain, MixValue)};
+      if (OutputDelta) {
+        channel = originalChannelData - channel;
+      }
+    }
+
+    {
+      auto& channel = processedBuffer[i + 1];
+      channel.Left = m_PostFilter[0].DoFilter(channel.Left);
+      channel.Right = m_PostFilter[1].DoFilter(channel.Right);
+    }
+  }
+
+  m_ThreeBandProcessor.WriteToBuffer(leftChannelData, rightChannelData);
+  return highestPeak;
 }
 
 } // namespace VSTZ

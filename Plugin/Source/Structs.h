@@ -9,6 +9,11 @@ struct Channel {
     Right *= other.Right;
     return *this;
   }
+  Channel operator+=(const Channel &other) {
+    Left += other.Left;
+    Right += other.Right;
+    return *this;
+  }
   Channel operator-(const Channel &other) const {
     return {Left - other.Left, Right - other.Right};
   }

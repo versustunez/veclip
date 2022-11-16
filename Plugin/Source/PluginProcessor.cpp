@@ -77,7 +77,7 @@ void VSTProcessor::prepareToPlay(double sampleRate, int blockSize) {
   if (config.sampleRate != sampleRate)
     config.sampleRate = sampleRate;
   instance->buffer->Reset(blockSize);
-  m_Distroyer.Setup(sampleRate);
+  m_Distroyer.Setup(sampleRate, blockSize);
 }
 
 juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter() {

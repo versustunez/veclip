@@ -6,5 +6,6 @@ add_sources(
         Distroyer.cpp
         PluginEditor.cpp
         PluginProcessor.cpp
+        ThreeBandProcessor.cpp
         UI.cpp
 )
