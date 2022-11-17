@@ -60,6 +60,9 @@ protected:
   void CombineBuffers();
 
 protected:
+
+  double m_LowPassFrequency{500};
+  double m_HighPassFrequency{2000};
   std::function<void(std::vector<Channel> &, size_t count, size_t)> m_ProcessingCallback;
   double m_SampleRate{44100};
   size_t m_CurrentIndex{0};

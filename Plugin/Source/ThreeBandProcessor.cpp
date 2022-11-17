@@ -88,10 +88,10 @@ ThreeBandProcessor::ThreeBandProcessor() {
 
 void ThreeBandProcessor::SetSampleRate(double sampleRate) {
   m_SampleRate = sampleRate;
-  m_BandFilters[0][0].LowPass(500, sampleRate);
-  m_BandFilters[1][0].LowPass(2000, sampleRate);
-  m_BandFilters[1][1].HighPass(500, sampleRate);
-  m_BandFilters[2][0].HighPass(2000, sampleRate);
+  m_BandFilters[0][0].LowPass(m_LowPassFrequency, sampleRate);
+  m_BandFilters[1][0].LowPass(m_HighPassFrequency, sampleRate);
+  m_BandFilters[1][1].HighPass(m_LowPassFrequency, sampleRate);
+  m_BandFilters[2][0].HighPass(m_HighPassFrequency, sampleRate);
 }
 
 void ThreeBandProcessor::SetSampleSize(size_t blockSize) {
@@ -104,11 +104,18 @@ void ThreeBandProcessor::SetSampleSize(size_t blockSize) {
 
 void ThreeBandProcessor::SetBandSplit(int band, double frequency) {
   if (band == 0) {
-    m_BandFilters[0][0].LowPass(frequency, m_SampleRate);
-    m_BandFilters[1][0].LowPass(frequency, m_SampleRate);
+    if (frequency != m_LowPassFrequency) {
+      m_BandFilters[0][0].LowPass(frequency, m_SampleRate);
+      m_BandFilters[1][1].HighPass(frequency, m_SampleRate);
+      m_LowPassFrequency = frequency;
+    }
   } else {
-    m_BandFilters[1][1].HighPass(frequency, m_SampleRate);
-    m_BandFilters[0][0].HighPass(frequency, m_SampleRate);
+    if (frequency != m_HighPassFrequency) {
+      m_BandFilters[1][0].LowPass(frequency, m_SampleRate);
+      m_BandFilters[2][0].HighPass(frequency, m_SampleRate);
+      m_HighPassFrequency = frequency;
+    }
+
   }
 }
 

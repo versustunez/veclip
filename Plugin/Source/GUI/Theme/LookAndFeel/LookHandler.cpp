@@ -1,3 +1,5 @@
+#include "GUI/Components/Knob.h"
+
 #include <Core/Config.h>
 #include <GUI/Theme/LookAndFeel/LookHandler.h>
 #include <cassert>
@@ -157,8 +159,19 @@ void LookHandler::drawBasedOnKnob(juce::Graphics &g, int x, int y, int width,
                                   int height, float sliderPosProportional,
                                   float rotaryStartAngle, float rotaryEndAngle,
                                   juce::Slider &slider) {
-  getLook()->drawRotarySlider(g, x, y, width, height, sliderPosProportional,
-                              rotaryStartAngle, rotaryEndAngle, slider);
+  auto *knob = reinterpret_cast<Knob*>(slider.getParentComponent());
+  if (knob != nullptr && knob->isValueBox()) {
+    g.setColour(theme->getColor(Colors::accent));
+    g.drawRect(juce::Rectangle<int>(x, y, width, height).toFloat(),
+                      1.0f);
+    g.setColour(theme->getColor(Colors::font));
+    g.drawFittedText(
+        VUtils::StringUtils::toString(slider.getValue(), knob->precision(), true),
+        x, y, width, height, juce::Justification::centred, 1, 1);
+  } else {
+    getLook()->drawRotarySlider(g, x, y, width, height, sliderPosProportional,
+                                rotaryStartAngle, rotaryEndAngle, slider);
+  }
 }
 void LookHandler::drawTooltip(juce::Graphics &graphics,
                               const juce::String &text, int width, int height) {

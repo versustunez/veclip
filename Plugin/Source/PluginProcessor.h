@@ -7,11 +7,11 @@
 #include <Core/Parameter/Parameter.h>
 
 struct ProcessorParameters {
-  VSTZ::Core::Parameter *Input;
   VSTZ::Core::Parameter *Output;
-  VSTZ::Core::Parameter *DistMix;
   VSTZ::Core::Parameter *Delta;
   VSTZ::Core::Parameter *Bypass;
+  VSTZ::Core::Parameter *LowCross;
+  VSTZ::Core::Parameter *HighCross;
 };
 class VSTProcessor : public juce::AudioProcessor {
 public:

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/Instance.h"
+#include "GUI/BandUI.h"
 
 #include <GUI/Components/Components.h>
 #include <TypeDefs.h>
@@ -36,13 +37,14 @@ public:
 
 protected:
   InstanceID m_ID{};
-  Scope<GUI::Knob> m_Input;
   Scope<GUI::Knob> m_Output;
-  Scope<GUI::Knob> m_DistMix;
+  Scope<GUI::Knob> m_LowCross;
+  Scope<GUI::Knob> m_HighCross;
   Scope<GUI::Switch> m_Bypass;
   Scope<GUI::Switch> m_Delta;
   Scope<ClipLED> m_ClipLED;
   Scope<BufferDrawer> m_VU;
+  Scope<BandUI> m_BandUI_[3];
   Core::Instance* m_Instance;
 };
 } // namespace VSTZ

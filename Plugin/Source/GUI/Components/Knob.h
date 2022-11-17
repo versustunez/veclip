@@ -25,9 +25,15 @@ public:
   void editorShown(juce::Label *label, juce::TextEditor &editor) override;
   void editorHidden(juce::Label *label, juce::TextEditor &editor) override;
   void enableLiveLabel(bool isSemi);
-  void EnableLinearModeVertical() { m_slider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical); }
-  void EnableLinearModeHorizontal() { m_slider->setSliderStyle(juce::Slider::SliderStyle::LinearHorizontal); }
-  void EnableLinearModeBar() { m_slider->setSliderStyle(juce::Slider::SliderStyle::LinearBarVertical); }
+  void EnableLinearModeVertical() {
+    m_slider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
+  }
+  void EnableLinearModeHorizontal() {
+    m_slider->setSliderStyle(juce::Slider::SliderStyle::LinearHorizontal);
+  }
+  void EnableLinearModeBar() {
+    m_slider->setSliderStyle(juce::Slider::SliderStyle::LinearBarVertical);
+  }
 
   juce::Slider *slider();
   juce::Label *label();
@@ -44,7 +50,15 @@ public:
   double getValue() { return m_slider->getValue(); };
   void setTooltip(bool tooltip);
 
+  void setIsValueBox(bool valueBox) {
+    m_isValueBox = valueBox;
+    if (valueBox)
+      m_slider->setSliderStyle(juce::Slider::SliderStyle::RotaryVerticalDrag);
+  }
+  [[nodiscard]] bool isValueBox() const { return m_isValueBox; }
+
 protected:
+  bool m_isValueBox{false};
   Scope<juce::Slider> m_slider;
   std::unique_ptr<SliderAttachment> m_attachment;
   Scope<GUIEvents::LiveLabel> m_liveLabel{nullptr};

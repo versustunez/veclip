@@ -4,48 +4,74 @@
 namespace VSTZ {
 void UI::Init() {
   m_Instance = Core::Instance::get(m_ID);
-  m_Input.Create("input", "Drive", m_ID);
-  m_Input->EnableLinearModeBar();
-  m_Input->enableLiveLabel(true);
-
   m_Output.Create("output", "Output", m_ID);
   m_Output->EnableLinearModeBar();
   m_Output->enableLiveLabel(true);
-
-  m_DistMix.Create("dist_mix", "Dist Mix", m_ID);
-  m_DistMix->enableLiveLabel(true);
-
   m_Bypass.Create("bypass", "Bypass", m_ID);
   m_Bypass->setButtonText("Bypass");
-
   m_Delta.Create("delta", "Delta", m_ID);
   m_Delta->setButtonText("Delta");
-
   m_ClipLED.Create(m_ID);
   m_VU.Create(m_ID, true);
 
-  addAndMakeVisible(*m_Input);
+  m_BandUI_[0].Create("low", m_ID);
+  m_BandUI_[1].Create("mid", m_ID);
+  m_BandUI_[2].Create("high", m_ID);
+
+  m_LowCross.Create("low_cross", "Low Split", m_ID);
+  m_LowCross->setIsValueBox(true);
+
+  m_HighCross.Create("high_cross", "High Split", m_ID);
+  m_HighCross->setIsValueBox(true);
+
   addAndMakeVisible(*m_Output);
-  addAndMakeVisible(*m_DistMix);
   addAndMakeVisible(*m_Bypass);
   addAndMakeVisible(*m_Delta);
   addAndMakeVisible(*m_ClipLED);
+  addAndMakeVisible(*m_BandUI_[0]);
+  addAndMakeVisible(*m_BandUI_[1]);
+  addAndMakeVisible(*m_BandUI_[2]);
   addAndMakeVisible(*m_VU);
+  addAndMakeVisible(*m_LowCross);
+  addAndMakeVisible(*m_HighCross);
 }
 void UI::resized() {
-  m_Bypass->setBounds(10, 10, 50, 20);
-  m_Delta->setBounds(10, 30, 50, 20);
-  m_ClipLED->setBounds(260, 10, 50, 20);
-  m_VU->setBounds(70, 10, 180, 20);
-  m_Input->setBounds(10, 90, 50, 130);
-  m_DistMix->setBounds(70, 105, 170, 120);
-  m_Output->setBounds(260, 90, 50, 130);
+  m_ClipLED->setBounds(320, 10, 60, 20);
+  m_VU->setBounds(20, 10, 290, 20);
+  m_LowCross->setBounds(20, 40, 60, 40);
+  m_HighCross->setBounds(320, 40, 60, 40);
+
+  juce::FlexBox fb;
+  fb.justifyContent = juce::FlexBox::JustifyContent::spaceAround;
+
+  juce::FlexBox outputFB;
+  outputFB.flexDirection = juce::FlexBox::Direction::column;
+  outputFB.items.add(juce::FlexItem(*m_Output)
+                         .withWidth(60)
+                         .withHeight(getHeight() - 145)
+                         .withMargin(juce::FlexItem::Margin(5, 0, 0, 0)));
+  outputFB.items.add(juce::FlexItem(*m_Bypass).withHeight(20));
+  outputFB.items.add(juce::FlexItem(*m_Delta).withHeight(20));
+
+  fb.items.add(juce::FlexItem(*m_BandUI_[0]).withWidth(60));
+  fb.items.add(juce::FlexItem(*m_BandUI_[1]).withWidth(60));
+  fb.items.add(juce::FlexItem(*m_BandUI_[2]).withWidth(60));
+  fb.items.add(juce::FlexItem(outputFB).withWidth(60).withAlignSelf(
+      juce::FlexItem::AlignSelf::stretch));
+  fb.performLayout(juce::Rectangle<float>{0.f, 85.0f, (float)getWidth(),
+                                          getHeight() - 95.0f});
 }
 
 void UI::paint(juce::Graphics &g) {
+  g.setColour(juce::Colour(0.f,0.f,0.f,.4f));
+  g.fillRect(0,0,getWidth(), 84);
+  auto color = Core::Config::get().theme()->getColor(Theme::Colors::accent);
+  g.setColour(color);
+  g.fillRect(0,84,getWidth(),1);
   g.setColour(juce::Colours::white);
   g.setFont(36);
-  g.drawText("VeClip", 70, 40, 170, 40, juce::Justification::centred, true);
+  g.drawText("VeClip", 0, 35, getWidth(), 40, juce::Justification::centred,
+             true);
 }
 
 BufferDrawer::BufferDrawer(InstanceID id, bool isVU) : m_ID(id), m_IsVU(isVU) {
@@ -80,8 +106,10 @@ void BufferDrawer::paint(juce::Graphics &g) {
   auto buffer = m_Instance->buffer->Peak();
   int halfHeight = (int)(double(getHeight() - 4) / 2.0);
   int barWidth = getWidth() - 2;
-  int leftBarWidth = normalizeBufferRange((m_Last.Left + buffer.Left) * 0.5) * barWidth;
-  int rightBarWidth = normalizeBufferRange((m_Last.Right + buffer.Right) * 0.5) * barWidth;
+  int leftBarWidth =
+      normalizeBufferRange((m_Last.Left + buffer.Left) * 0.5) * barWidth;
+  int rightBarWidth =
+      normalizeBufferRange((m_Last.Right + buffer.Right) * 0.5) * barWidth;
 
   int zeroDecibelLineX = normalizeBufferRange(0) * barWidth;
   constexpr int xOffset = 1;
@@ -93,7 +121,8 @@ void BufferDrawer::paint(juce::Graphics &g) {
   g.fillRoundedRectangle(xOffset, 1, leftBarWidth, halfHeight, cornerSize);
   // Right Channel
   g.setColour(MixColor(color2, color, normalizeUIBufferRange(buffer.Right)));
-  g.fillRoundedRectangle(xOffset, halfHeight + 3, rightBarWidth, halfHeight, cornerSize);
+  g.fillRoundedRectangle(xOffset, halfHeight + 3, rightBarWidth, halfHeight,
+                         cornerSize);
 
   m_Last = buffer;
 }

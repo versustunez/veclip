@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Parameter/Parameter.h"
 #include "Oversampler.h"
 #include "Structs.h"
 #include "ThreeBandProcessor.h"
@@ -7,18 +8,24 @@
 #include <JuceHeader.h>
 
 namespace VSTZ {
+
+struct DistoryerParameters {
+  Core::Parameter* Input{nullptr};
+  Core::Parameter* Mix{nullptr};
+  Core::Parameter* Mute{nullptr};
+  Core::Parameter* Bypass{nullptr};
+};
 class Distroyer {
 public:
   Distroyer();
   void Setup(double sampleRate, int sampleSize);
   Channel Process(juce::AudioBuffer<float>& buffer);
-  float InputGain{0.0};
-  float AutoGain{0.0};
   float OutputGain{0.0};
-  double MixValue{0.5};
   bool OutputDelta{false};
-protected:
-  Channel ProcessSample(const Channel& channel) const;
+
+  double m_LowCrossFrequency{0};
+  double m_HighCrossFrequency{0};
+  DistoryerParameters Parameters_[3]{};
 
 protected:
   // Stereo LowPass ;)
