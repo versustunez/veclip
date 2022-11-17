@@ -78,7 +78,7 @@ Channel Distroyer::Process(juce::AudioBuffer<float> &buffer) {
       channel *= {OutputGain, OutputGain};
 
       if (OutputDelta) {
-        channel = originalChannelData - channel;
+        channel = channel - originalChannelData;
       }
     }
 
